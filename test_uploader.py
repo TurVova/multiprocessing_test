@@ -1,17 +1,18 @@
-import shutil
-import unittest
 import os
 import queue
+import shutil
+import unittest
+
 from uploader import Uploader
 
 
 class UploaderTest(unittest.TestCase):
-    num_of_processes = 4
-    files_to_upload = []
-    path_for_files = os.path.dirname(os.path.abspath(__file__)) + '/files'
 
     @classmethod
     def setUpClass(cls):
+        cls.num_of_processes = 4
+        cls.files_to_upload = []
+        cls.path_for_files = os.path.dirname(os.path.abspath(__file__)) + '/files'
         if not os.path.exists(cls.path_for_files):
             os.makedirs(cls.path_for_files)
 
@@ -27,9 +28,9 @@ class UploaderTest(unittest.TestCase):
     def setUp(self):
         self.q = queue.Queue()
         self.uploader = Uploader(
-            files_list=self.files_to_upload,
-            num_of_processes=self.num_of_processes,
-            queue=self.q
+            self.files_to_upload,
+            self.num_of_processes,
+            self.q
         )
 
     def test_uploader(self):
@@ -58,6 +59,7 @@ class UploaderTest(unittest.TestCase):
         self.assertIsInstance(self.uploader.progress.done, int)
         self.assertIsInstance(self.uploader.progress.error, int)
         self.assertIsInstance(self.uploader.progress.total, int)
+
 
 if __name__ == '__main__':
     unittest.main()

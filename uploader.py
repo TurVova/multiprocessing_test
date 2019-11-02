@@ -1,8 +1,9 @@
 import os
-import time
+import queue as q
 import random
-import queue as qq
+import time
 from multiprocessing import Process, Queue
+
 
 class Progress:
     _total = 0
@@ -43,8 +44,8 @@ class Uploader:
                 filename = task.split("/")[-1]
                 os.rename(task, f'{self.PATH}/{filename}')
                 self.completed_tasks.put_nowait(filename)
-                time.sleep(random.randrange(start=0, stop=5)) # Simulation of a process.
-            except qq.Empty:
+                time.sleep(random.randrange(start=0, stop=5))  # Simulation of a process.
+            except q.Empty:
                 break
             except:
                 self.tasks_with_errors.put_nowait(filename)
