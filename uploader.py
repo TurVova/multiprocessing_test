@@ -1,6 +1,8 @@
 import os
 import queue as q
 import random
+import shutil
+import signal
 import time
 from multiprocessing import Process, Queue
 
@@ -38,13 +40,15 @@ class Uploader:
         self.progress._total = len(files_list)
 
     def uploader(self, queue):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
         while True:
             try:
                 task = queue.get_nowait()
                 filename = task.split("/")[-1]
-                os.rename(task, f'{self.PATH}/{filename}')
+                shutil.copyfile(task, f'{self.PATH}/{filename}')
+
                 self.completed_tasks.put_nowait(filename)
-                time.sleep(random.randrange(start=0, stop=5))  # Simulation of a process.
+                time.sleep(random.randrange(start=0, stop=5))
             except q.Empty:
                 break
             except:
@@ -61,12 +65,21 @@ class Uploader:
             process.start()
             self.processes.append(process)
 
+    def stop(self):
+        for process in self.processes:
+            process.terminate()
+            process.join()
+        print('Done:', self.report(self.completed_tasks))
+        print('Not done:', self.report(self.performance_tasks))
+        print('With errors:', self.report(self.tasks_with_errors))
+
     def report(self, queue):
         files = []
         if queue.qsize():
-            while queue.qsize():
-                file = queue.get_nowait()
-                files.append(file)
+            while not queue.empty():
+                obj_from_queue = queue.get_nowait()
+                file = obj_from_queue.split('/')
+                files.append(file[-1])
             return ', '.join(files)
         else:
             return 'Nothing to show'
@@ -82,5 +95,5 @@ class Uploader:
                 os.system('clear')
                 return True
         else:
-            print('Done: ' + self.report(self.completed_tasks))
-            print('With errors: ' + self.report(self.tasks_with_errors))
+            print('Done:', self.report(self.completed_tasks))
+            print('With errors:', self.report(self.tasks_with_errors))

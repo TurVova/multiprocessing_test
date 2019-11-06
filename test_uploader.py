@@ -35,9 +35,12 @@ class UploaderTest(unittest.TestCase):
 
     def test_uploader(self):
         self.uploader.start()
-        while self.uploader.is_active():
-            progress = self.q.get()
-            print(progress.done, progress._error, progress._total)
+        try:
+            while self.uploader.is_active():
+                progress = self.q.get()
+                print(progress.done, progress._error, progress._total)
+        except KeyboardInterrupt:
+            self.uploader.stop()
 
     def test_check_path(self):
         self.assertIsInstance(self.uploader.PATH, str)
@@ -59,6 +62,19 @@ class UploaderTest(unittest.TestCase):
         self.assertIsInstance(self.uploader.progress.done, int)
         self.assertIsInstance(self.uploader.progress.error, int)
         self.assertIsInstance(self.uploader.progress.total, int)
+
+    def test_queue(self):
+        self.assertIsNotNone(self.uploader.performance_tasks)
+        self.assertIsNotNone(self.uploader.completed_tasks)
+        self.assertIsNotNone(self.uploader.tasks_with_errors)
+
+    def test_report(self):
+        report = self.uploader.report(self.uploader.performance_tasks)
+        self.assertIsInstance(report, str)
+
+    def test_is_active(self):
+        is_active = self.uploader.is_active()
+        self.assertIn(is_active, (True, None))
 
 
 if __name__ == '__main__':
